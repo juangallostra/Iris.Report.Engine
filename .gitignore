@@ -3,6 +3,12 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Binaries
+Iris.Report.Engine/QtBinaries/
+Iris.Report.Engine/QtBinariesLinux/
+Iris.Report.Engine/BlinkBinaries/
+Iris.Report.Engine/BlinkBinariesLinux/
+
 # User-specific files
 *.rsuser
 *.suo

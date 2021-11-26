@@ -1,0 +1,43 @@
+﻿@page "/"
+
+<PageTitle>Index</PageTitle>
+
+<h1 style="margin-bottom: 1rem;">PDF Generator</h1>
+
+<EditForm Model="@Model" OnValidSubmit="@(() => HandleValidSubmit(Model))">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+
+    <label for="identifier">URL: </label>
+    <InputText id="identifier" @bind-Value="@Model.TargetUrl" />
+    <br />
+    <br />
+
+    <label>Filename: </label>
+    <InputText id="filename" @bind-Value="@Model.Filename" />
+    <br />
+    <br />
+
+    <label>Rendering engine: </label>
+    <InputSelect id="department" @bind-Value=@Model.RenderMethodId>
+        @foreach (var method in RenderMethods)
+        {
+            <option value="@method.Id">@method.Method</option>
+        }
+    </InputSelect>
+    <br />
+    <br />
+
+    <button type="submit">Generate</button>
+</EditForm>
+
+@if (isCompleted)
+{
+    <br />
+    <br />
+    <span>Transformation completed!</span>
+    <br />
+    <br />
+    <button @onclick=@DownloadFiles>Download File(s)</button>
+}
