@@ -8,6 +8,8 @@ Iris.Report.Engine/QtBinaries/
 Iris.Report.Engine/QtBinariesLinux/
 Iris.Report.Engine/BlinkBinaries/
 Iris.Report.Engine/BlinkBinariesLinux/
+# program output
+Iris.Report.Engine/output/*
 
 # User-specific files
 *.rsuser
