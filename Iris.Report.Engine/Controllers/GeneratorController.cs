@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Syncfusion.HtmlConverter;
 using Syncfusion.Pdf;
+using System.Runtime.InteropServices;
 
 namespace Iris.Report.Engine.Controllers
 {
@@ -10,14 +11,32 @@ namespace Iris.Report.Engine.Controllers
     public class GeneratorController : Controller
     {
         private readonly IWebHostEnvironment environment;
+        private WebKitConverterSettings WebKitSettings { get; set; }
+        private BlinkConverterSettings BlinkSettings { get; set; }
         public GeneratorController(IWebHostEnvironment environment)
         {
             this.environment = environment;
+            WebKitSettings = new WebKitConverterSettings();
+            BlinkSettings = new BlinkConverterSettings();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                WebKitSettings.WebKitPath = Path.Combine(environment.ContentRootPath, "QtBinariesLinux");
+                BlinkSettings.BlinkPath = Path.Combine(environment.ContentRootPath, "BlinkBinariesLinux");
+                //Set command line arguments to run without sandbox.
+                BlinkSettings.CommandLineArguments.Add("--no-sandbox");
+                BlinkSettings.CommandLineArguments.Add("--disable-setuid-sandbox");
+
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                WebKitSettings.WebKitPath = ".\\QtBinaries";
+                BlinkSettings.BlinkPath = ".\\BlinkBinaries";
+            }
         }
 
         [HttpPost("generate")]
         public IActionResult Generate(
-            [FromBody] GenerationRequestBody generationRequestBody)
+                [FromBody] GenerationRequestBody generationRequestBody)
         {
             string path = "";
             switch (ToEnum(generationRequestBody.Method))
@@ -43,10 +62,6 @@ namespace Iris.Report.Engine.Controllers
         private string GeneratePDFWebKit(GenerationRequestBody body)
         {
             HtmlToPdfConverter WebKitHtmlConverter = new HtmlToPdfConverter(HtmlRenderingEngine.WebKit);
-            WebKitConverterSettings WebKitSettings = new WebKitConverterSettings();
-            WebKitSettings.WebKitPath = Path.Combine(environment.ContentRootPath, "QtBinariesLinux");
-            //WebKitSettings.WebKitPath = Path.Combine(environment.ContentRootPath, "QtBinaries");
-            //WebKitSettings.WebKitPath = ".\\QtBinaries";
             WebKitHtmlConverter.ConverterSettings = WebKitSettings;
             return RenderPDF(WebKitHtmlConverter, body.TargetUrl, body.Filename);
         }
@@ -55,21 +70,9 @@ namespace Iris.Report.Engine.Controllers
         {
             //Initialize HTML to PDF converter 
             HtmlToPdfConverter BlinkHtmlConverter = new HtmlToPdfConverter(HtmlRenderingEngine.Blink);
-            BlinkConverterSettings BlinkSettings = new BlinkConverterSettings();
-
-            BlinkSettings.BlinkPath = Path.Combine(environment.ContentRootPath, "BlinkBinariesLinux");
-            //BlinkSettings.BlinkPath = Path.Combine(environment.ContentRootPath, "BlinkBinaries");
-            //BlinkSettings.BlinkPath = ".\\BlinkBinaries";
-
-            //Set command line arguments to run without sandbox.
-            BlinkSettings.CommandLineArguments.Add("--no-sandbox");
-            BlinkSettings.CommandLineArguments.Add("--disable-setuid-sandbox");
-
             //Assign WebKit settings to HTML converter
             BlinkHtmlConverter.ConverterSettings = BlinkSettings;
-
             return RenderPDF(BlinkHtmlConverter, body.TargetUrl, body.Filename);
-
         }
 
         private string RenderPDF(HtmlToPdfConverter converter, string url, string filename)

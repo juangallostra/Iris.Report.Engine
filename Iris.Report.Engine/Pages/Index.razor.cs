@@ -3,6 +3,7 @@ using Microsoft.JSInterop;
 using Syncfusion.HtmlConverter;
 using Syncfusion.Pdf;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.InteropServices;
 
 namespace Iris.Report.Engine.Pages
 {
@@ -46,6 +47,35 @@ namespace Iris.Report.Engine.Pages
 
         private bool isCompleted = false;
 
+        private WebKitConverterSettings WebKitSettings { get; set; } = default!;
+        private BlinkConverterSettings BlinkSettings { get; set; } = default!;
+
+        protected override void OnInitialized()
+        {
+            WebKitSettings = new WebKitConverterSettings();
+            BlinkSettings = new BlinkConverterSettings();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+
+                //Set WebKit path
+                //WebKitSettings.WebKitPath = ".\\QtBinaries";
+                WebKitSettings.WebKitPath = Path.Combine(environment.ContentRootPath, "QtBinariesLinux");
+                //BlinkSettings.BlinkPath = ".\\BlinkBinaries";
+                BlinkSettings.BlinkPath = Path.Combine(environment.ContentRootPath, "BlinkBinariesLinux");
+                //Set command line arguments to run without sandbox.
+                BlinkSettings.CommandLineArguments.Add("--no-sandbox");
+                BlinkSettings.CommandLineArguments.Add("--disable-setuid-sandbox");
+
+            }
+            else if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                WebKitSettings.WebKitPath = ".\\QtBinaries";
+                BlinkSettings.BlinkPath = ".\\BlinkBinaries";
+
+            }
+            base.OnInitialized();
+        }
+
         protected override void OnParametersSet()
         {
             isCompleted = false;
@@ -60,19 +90,6 @@ namespace Iris.Report.Engine.Pages
             //Initialize HTML to PDF converter 
             HtmlToPdfConverter WebKitHtmlConverter = new HtmlToPdfConverter(HtmlRenderingEngine.WebKit);
             HtmlToPdfConverter BlinkHtmlConverter = new HtmlToPdfConverter(HtmlRenderingEngine.Blink);
-
-            WebKitConverterSettings WebKitSettings = new WebKitConverterSettings();
-            BlinkConverterSettings BlinkSettings = new BlinkConverterSettings();
-
-            //Set WebKit path
-            //WebKitSettings.WebKitPath = ".\\QtBinaries";
-            WebKitSettings.WebKitPath = Path.Combine(environment.ContentRootPath, "QtBinariesLinux");
-            //BlinkSettings.BlinkPath = ".\\BlinkBinaries";
-            BlinkSettings.BlinkPath = Path.Combine(environment.ContentRootPath, "BlinkBinariesLinux");
-            //Set command line arguments to run without sandbox.
-            BlinkSettings.CommandLineArguments.Add("--no-sandbox");
-            BlinkSettings.CommandLineArguments.Add("--disable-setuid-sandbox");
-
 
             //Assign WebKit settings to HTML converter
             WebKitHtmlConverter.ConverterSettings = WebKitSettings;
@@ -150,6 +167,7 @@ namespace Iris.Report.Engine.Pages
                 await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
             }
             isCompleted = false;
+            StateHasChanged();
         }
     }
 
