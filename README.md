@@ -51,3 +51,13 @@ In order to get them, see the links below:
 * Blink binaries: [https://help.syncfusion.com/file-formats/pdf/convert-html-to-pdf/blink](https://help.syncfusion.com/file-formats/pdf/convert-html-to-pdf/blink)
 
 The code expects to find the binaries under the `Iris.Report.Engine` folder, at the same level than `Iris.Report.Engine.csproj`. The expected names are `QtBinaries` & `QtBinariesLinux` for the folders containing both Windows and Linux WebKit binaries and `BlinkBinaries` & `BlinkBinariesLinux` for the Windows and Linux folders containing the Blink binaries.
+
+## Development
+
+### Push a new docker image to GCP
+
+```bash
+$ docker tag irisreport eu.gcr.io/iris-report-engine/irisreport
+$ gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://eu.gcr.io
+$ docker push eu.gcr.io/iris-report-engine/irisreport
+```
